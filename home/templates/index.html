@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <title>Hotel</title>
+</head>
+<body>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="/" class="brand-logo p3">Django-Hotels</a>
+        </div>
+    </nav>
+    
+    <div class="container">
+        <div class="row">
+            <div class="input-field col s12 m6">
+                <select multiple onchange="getHotels()" id="emenities">
+                    <option value="" disabled selected>Choose your option</option>
+                    {% for emenitie in emenities %}
+                    <option value="{{emenitie.id}}">{{emenitie.name}}</option>
+                    {% endfor %}
+                </select>
+                <label>Select Amenities</label>
+            </div>
+            <div class="input-field col s12 m6">
+                <span>Price filter</span>
+                <input type="range" id="price" min="1000" max="10000" value="3000" onchange="getHotels()">
+                
+            </div>
+        </div>
+    </div>
+
+    <div class="container" id="show_hotels_here" >
+       
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+    <script>
+        $(document).ready(function(){
+            $('select').formSelect();
+        });
+
+        function getHotels(){
+            var price = document.getElementById('price').value;
+            var instance = M.FormSelect.getInstance(document.getElementById('emenities'));
+            var amenities = '';
+            var html= '';
+            if(instance){
+                amenities = instance.getSelectedValues();
+            }
+
+            fetch(`/api/hotels?emenities=${amenities}&price=${price}`)
+            .then(result => result.json())
+            .then(response => {
+                for(var i = 0; i < response.length; i++){
+                    html +=
+                    `<div class="col s12 m3">
+                        <div class="card" >
+                            <div class="card-image">
+                                <img src="${response[i].hotel_image}" alt="Hotel Image" style="max-height: 100px; max-width: 500px;">
+
+                            </div>
+                            <div class="card-content">
+                                <span class="card-title black-text">${response[i].hotel_name}</span>
+                                <p>Price - <span class="new badge">${response[i].hotel_price}</span></p>
+                                <p>${response[i].hotel_description.substring(0, 100)}</p>
+                            </div>
+                        </div>
+                    </div>`
+                }
+                document.getElementById('show_hotels_here').innerHTML = `<div class="row">${html}</div>`;
+            });
+        }
+    </script>
+</body>
+</html>
